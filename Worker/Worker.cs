@@ -1,7 +1,8 @@
 using System.IO;
 using System.Threading.Tasks;
+using FormService.Templates;
 
-namespace FormService
+namespace FormService.Worker
 {
     public class Worker : BackgroundService
     {
