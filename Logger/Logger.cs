@@ -5,18 +5,31 @@ public class Logger
 {
     private readonly string _logFilePath;
 
-    public Logger(string logFilePath)
+    public Logger()
     {
-        _logFilePath = logFilePath;
+        _logFilePath = "C:\\FormService\\log.txt";
     }
 
-    public void Log(string message)
+    public void WriteLog(string message, string type_error)
     {
         try
         {
-            using (StreamWriter writer = File.AppendText(_logFilePath))
+            // Verificar si el archivo existe
+            if (!File.Exists(_logFilePath))
             {
-                writer.WriteLine($"{DateTime.Now}: {message}");
+                // Crear el archivo
+                using (StreamWriter writer = File.CreateText(_logFilePath))
+                {
+                    writer.WriteLine($"{type_error} | {DateTime.Now}: {message}");
+                }
+            }
+            else
+            {
+                // Agregar el nuevo contenido al final del archivo
+                using (StreamWriter writer = File.AppendText(_logFilePath))
+                {
+                    writer.WriteLine($"{type_error} | {DateTime.Now}: {message}");
+                }
             }
         }
         catch (Exception ex)

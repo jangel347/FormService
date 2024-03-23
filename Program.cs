@@ -12,35 +12,43 @@ namespace FormService
     public class Program
     {
         public static IConfiguration configuration;
+        public static Logger log;
         public static async Task Main(string[] args)
         {
-            var buildConfig = new ConfigurationBuilder()
-                .AddJsonFile("C:\\FormService\\appsettings.json", optional : true, reloadOnChange : true);
+            log = new Logger();
+            try { 
+                var buildConfig = new ConfigurationBuilder()
+                    .AddJsonFile("C:\\FormService\\appsettings.json", optional : true, reloadOnChange : true);
 
-            configuration = buildConfig.Build();
-            var host = new HostBuilder()
-                .ConfigureHostConfiguration(configHost =>
-                {
-                    configHost.AddEnvironmentVariables();
-                    configHost.AddCommandLine(args);
-                })
-                .ConfigureAppConfiguration((hostContext, configApp) =>
-                {
-                    configApp.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                    configApp.AddEnvironmentVariables();
-                })
-                .ConfigureLogging((hostContext, configLogging) =>
-                {
-                    configLogging.AddConsole();
-                    configLogging.AddDebug();
-                })
-                .ConfigureServices((hostContext, services) =>
-                {
-                    services.AddHostedService<WorkerClass>();
-                })
-                .Build();
+                configuration = buildConfig.Build();
+                var host = new HostBuilder()
+                    .ConfigureHostConfiguration(configHost =>
+                    {
+                        configHost.AddEnvironmentVariables();
+                        configHost.AddCommandLine(args);
+                    })
+                    .ConfigureAppConfiguration((hostContext, configApp) =>
+                    {
+                        configApp.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                        configApp.AddEnvironmentVariables();
+                    })
+                    .ConfigureLogging((hostContext, configLogging) =>
+                    {
+                        configLogging.AddConsole();
+                        configLogging.AddDebug();
+                    })
+                    .ConfigureServices((hostContext, services) =>
+                    {
+                        services.AddHostedService<WorkerClass>();
+                    })
+                    .Build();
 
-            await host.RunAsync();
+                await host.RunAsync();
+
+            } catch (Exception ex)
+            {
+                log.WriteLog($"Hubo un error al lanzar el servicio: {ex.Message}","ERROR");
+            }
         }
     }
 }
