@@ -8,6 +8,9 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
+using System.Drawing;
+using FormService.Utilities;
 
 namespace FormService.Worker
 {
@@ -18,6 +21,7 @@ namespace FormService.Worker
         List<Element> _elements;
         public bool isExecuted;
         static Logger log;
+        static string PATH_SCREENSHOTS = "C:\\FormService\\Screenshots\\";
         public WorkerRobot(WorkerSettings config, DataInput data, List<Element> elements) { 
             _config = config;
             _data = data;
@@ -33,13 +37,25 @@ namespace FormService.Worker
                 Console.WriteLine("EJECUTA ROBOT");
                 var driver = new ChromeDriver();
 
-                driver.Navigate().GoToUrl("https://forms.office.com/Pages/ResponsePage.aspx?id=qNNG1hV7U0udkpgV_WJwLCfVP6r0EmVGnBeu-bvLR8VUNDlCNUVZNTFETTlWUjRKQjlYRTNSQzExSi4u");
+                driver.Navigate().GoToUrl(_config.url);
                 Thread.Sleep(3000);
                 foreach (DataElement data_element in _data.dataElements)
                 {
                     Element element = _elements.FirstOrDefault(element => element.idElement == data_element.elementId);
                     if (element == null) break;
                     PerformAction(driver, element, data_element.text);
+                }
+                Screenshot screenshot =  driver.GetScreenshot();
+                try
+                {
+                    DateTime now = DateTime.Now;
+                    string fileName = "screenshot_"+now.ToString("yyyy-MM-dd_HH-mm-ss")+".jpg";
+                    Files.createDirectoryIfNotExists(PATH_SCREENSHOTS);
+                    screenshot.SaveAsFile(PATH_SCREENSHOTS + fileName);
+                }
+                catch (Exception ex) {
+                    log.WriteLog("Error al guardar pantallazo: " + ex.Message, "ERROR");
+                    throw ex;
                 }
 
                 var submitButton = driver.FindElement(By.XPath(_config.submit_button));

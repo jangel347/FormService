@@ -27,6 +27,8 @@ namespace Worker
             // Convertir las variables de string a TimeSpan
             TimeSpan startTime = TimeSpan.Parse(_settings.time_limit1); 
             TimeSpan endTime = TimeSpan.Parse(_settings.time_limit2);
+            log.WriteLog($"Ejecución entre {_settings.time_limit1} y {_settings.time_limit2}", "INFO");
+            Console.WriteLine($"Ejecución entre {_settings.time_limit1} y {_settings.time_limit2}");
             if (_settings == null)
             {
                 log.WriteLog("No sé cargó correctamente el archivo de configuración", "ERROR");

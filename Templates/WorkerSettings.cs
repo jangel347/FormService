@@ -10,6 +10,7 @@ namespace FormService.Templates
     {
         public string time_limit1 { get; set; }
         public string time_limit2 { get; set; }
+        public string url { get; set; }
         public string submit_button { get; set; }
         public DataInput[] data { get; set; }
         public Element[] elements { get; set; }
