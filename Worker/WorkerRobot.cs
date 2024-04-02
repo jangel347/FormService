@@ -39,23 +39,27 @@ namespace FormService.Worker
 
                 driver.Navigate().GoToUrl(_config.url);
                 Thread.Sleep(3000);
+                Boolean flagScreenshot = true;
                 foreach (DataElement data_element in _data.dataElements)
                 {
                     Element element = _elements.FirstOrDefault(element => element.idElement == data_element.elementId);
                     if (element == null) break;
                     PerformAction(driver, element, data_element.text);
-                }
-                Screenshot screenshot =  driver.GetScreenshot();
-                try
-                {
-                    DateTime now = DateTime.Now;
-                    string fileName = "screenshot_"+now.ToString("yyyy-MM-dd_HH-mm-ss")+".jpg";
-                    Files.createDirectoryIfNotExists(PATH_SCREENSHOTS);
-                    screenshot.SaveAsFile(PATH_SCREENSHOTS + fileName);
-                }
-                catch (Exception ex) {
-                    log.WriteLog("Error al guardar pantallazo: " + ex.Message, "ERROR");
-                    throw ex;
+                    if (flagScreenshot) { 
+                        Screenshot screenshot =  driver.GetScreenshot();
+                        try
+                        {
+                            DateTime now = DateTime.Now;
+                            string fileName = "screenshot_"+now.ToString("yyyy-MM-dd_HH-mm-ss")+".jpg";
+                            Files.createDirectoryIfNotExists(PATH_SCREENSHOTS);
+                            screenshot.SaveAsFile(PATH_SCREENSHOTS + fileName);
+                        }
+                        catch (Exception ex) {
+                            log.WriteLog("Error al guardar pantallazo: " + ex.Message, "ERROR");
+                            throw ex;
+                        }
+                        flagScreenshot = false;
+                    }
                 }
 
                 var submitButton = driver.FindElement(By.XPath(_config.submit_button));
