@@ -38,7 +38,7 @@ namespace FormService.Worker
                 var driver = new ChromeDriver();
 
                 driver.Navigate().GoToUrl(_config.url);
-                Thread.Sleep(3000);
+                Thread.Sleep(_config.time_to_wait*1000);
                 Boolean flagScreenshot = true;
                 foreach (DataElement data_element in _data.dataElements)
                 {
