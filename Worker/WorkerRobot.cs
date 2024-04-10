@@ -38,24 +38,25 @@ namespace FormService.Worker
                 var driver = new ChromeDriver();
 
                 driver.Navigate().GoToUrl(_config.url);
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 Thread.Sleep(_config.time_to_wait*1000);
                 Boolean flagScreenshot = true;
+                DateTime now = DateTime.Now;
+                string fileName = "screenshot_" + now.ToString("yyyy-MM-dd_HH-mm-ss");
                 foreach (DataElement data_element in _data.dataElements)
                 {
                     Element element = _elements.FirstOrDefault(element => element.idElement == data_element.elementId);
                     if (element == null) break;
-                    PerformAction(driver, element, data_element.text);
+                    PerformAction(driver, element, data_element.text, wait);
                     if (flagScreenshot) { 
                         Screenshot screenshot =  driver.GetScreenshot();
                         try
                         {
-                            DateTime now = DateTime.Now;
-                            string fileName = "screenshot_"+now.ToString("yyyy-MM-dd_HH-mm-ss")+".jpg";
                             Files.createDirectoryIfNotExists(PATH_SCREENSHOTS);
-                            screenshot.SaveAsFile(PATH_SCREENSHOTS + fileName);
+                            screenshot.SaveAsFile(PATH_SCREENSHOTS + fileName+"_1.jpg");
                         }
                         catch (Exception ex) {
-                            log.WriteLog("Error al guardar pantallazo: " + ex.Message, "ERROR");
+                            log.WriteLog("Error al guardar pantallazo1: " + ex.Message, "ERROR");
                             throw ex;
                         }
                         flagScreenshot = false;
@@ -65,6 +66,18 @@ namespace FormService.Worker
                 var submitButton = driver.FindElement(By.XPath(_config.submit_button));
                 submitButton.Click();
                 log.WriteLog($"Click en botón ENVIAR", "INFO");
+                Thread.Sleep(_config.time_to_wait * 1000);
+                Screenshot screenshot2 = driver.GetScreenshot();
+                try
+                {
+                    Files.createDirectoryIfNotExists(PATH_SCREENSHOTS);
+                    screenshot2.SaveAsFile(PATH_SCREENSHOTS + fileName + "_2.jpg");
+                }
+                catch (Exception ex)
+                {
+                    log.WriteLog("Error al guardar pantallazo1: " + ex.Message, "ERROR");
+                    throw ex;
+                }
                 driver.Quit();
                 Console.WriteLine("TERMINA ROBOT");
                 log.WriteLog("TERMINA ROBOT ............................", "INFO");
@@ -75,9 +88,12 @@ namespace FormService.Worker
             }
         }
 
-        private static void PerformAction(IWebDriver driver, Element element, string text)
+        private static void PerformAction(IWebDriver driver, Element element, string text, WebDriverWait wait)
         {
-            var elementToFind = driver.FindElement(By.XPath(element.XpathElement));
+            var elementToFind = wait.Until(c => c.FindElement(By.XPath(element.XpathElement.Replace("_VARIABLE_", text))));
+            //var elementToFind = driver.FindElement(By.XPath(element.XpathElement));
+            //IWebElement element = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("//input[@id='elementoId']"));
+
             switch (element.Action)
             {
                 case "click":
