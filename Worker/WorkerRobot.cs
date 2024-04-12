@@ -136,7 +136,7 @@ namespace FormService.Worker
                 if (_driver == null)
                     _driver = new ChromeDriver();
                 _driver.Navigate().GoToUrl(_config.account.url_form);
-                Thread.Sleep(_config.account.time_to_wait);
+                Thread.Sleep(_config.account.time_to_wait*1000);
             }
             catch (Exception ex) {
                 log.WriteLog("Error al iniciar sesión: " + ex.Message, "ERROR");
