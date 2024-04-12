@@ -31,6 +31,7 @@ namespace FormService.Worker
             _config = config;
             _driver = null;
             _isSessionActive = false;
+            log = new Logger();
         }
         public WorkerRobot(WorkerSettings config, DataInput data, List<Element> elements, ChromeDriver driver, bool isSessionActive) { 
             _config = config;
