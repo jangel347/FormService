@@ -93,6 +93,7 @@ namespace FormService.Worker
                 Thread.Sleep(_config.time_to_wait * 1000);
                 var saveButton = _driver.FindElement(By.XPath(_config.save_button));
                 saveButton.Click();
+                Thread.Sleep(500);
                 if (isLast) _driver.Quit();
                 Console.WriteLine("TERMINA ROBOT");
                 log.WriteLog("TERMINA ROBOT ............................", "INFO");
