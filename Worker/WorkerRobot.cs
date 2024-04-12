@@ -20,39 +20,52 @@ namespace FormService.Worker
         DataInput _data;
         List<Element> _elements;
         public bool isExecuted;
+        public bool _isSessionActive;
         static Logger log;
         static string PATH_SCREENSHOTS = "C:\\FormService\\Screenshots\\";
-        public WorkerRobot(WorkerSettings config, DataInput data, List<Element> elements) { 
+        public ChromeDriver _driver;
+        public bool isLast { get; set; }
+        string fileName;
+
+        public WorkerRobot(WorkerSettings config) {
+            _config = config;
+            _driver = null;
+            _isSessionActive = false;
+        }
+        public WorkerRobot(WorkerSettings config, DataInput data, List<Element> elements, ChromeDriver driver, bool isSessionActive) { 
             _config = config;
             _data = data;
             _elements = elements;
             isExecuted = false;
+            isLast = false;
+            _isSessionActive = isSessionActive;
+            _driver = driver;
             log = new Logger();
-            Robot();
         }
 
-        private void Robot(){
+        public void ExecuteRobot(){
             try {
+                DateTime now = DateTime.Now;
+                fileName = "screenshot_" + now.ToString("yyyy-MM-dd_HH-mm-ss");
                 log.WriteLog("EJECUTA ROBOT ............................", "INFO");
                 Console.WriteLine("EJECUTA ROBOT");
-                var driver = new ChromeDriver();
-
-                driver.Navigate().GoToUrl(_config.url);
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                if (_driver == null)
+                    _driver = new ChromeDriver();
+                Files.createDirectoryIfNotExists(PATH_SCREENSHOTS);
+                _driver.Navigate().GoToUrl(_config.url);
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
                 Thread.Sleep(_config.time_to_wait*1000);
                 Boolean flagScreenshot = true;
-                DateTime now = DateTime.Now;
-                string fileName = "screenshot_" + now.ToString("yyyy-MM-dd_HH-mm-ss");
+                
                 foreach (DataElement data_element in _data.dataElements)
                 {
                     Element element = _elements.FirstOrDefault(element => element.idElement == data_element.elementId);
                     if (element == null) break;
-                    PerformAction(driver, element, data_element.text, wait);
+                    PerformAction(element, data_element.text, wait);
                     if (flagScreenshot) { 
-                        Screenshot screenshot =  driver.GetScreenshot();
+                        Screenshot screenshot =  _driver.GetScreenshot();
                         try
                         {
-                            Files.createDirectoryIfNotExists(PATH_SCREENSHOTS);
                             screenshot.SaveAsFile(PATH_SCREENSHOTS + fileName+"_1.jpg");
                         }
                         catch (Exception ex) {
@@ -63,22 +76,24 @@ namespace FormService.Worker
                     }
                 }
 
-                var submitButton = driver.FindElement(By.XPath(_config.submit_button));
+                var submitButton = _driver.FindElement(By.XPath(_config.submit_button));
                 submitButton.Click();
                 log.WriteLog($"Click en botón ENVIAR", "INFO");
                 Thread.Sleep(_config.time_to_wait * 1000);
-                Screenshot screenshot2 = driver.GetScreenshot();
+                Screenshot screenshot2 = _driver.GetScreenshot();
                 try
                 {
-                    Files.createDirectoryIfNotExists(PATH_SCREENSHOTS);
                     screenshot2.SaveAsFile(PATH_SCREENSHOTS + fileName + "_2.jpg");
                 }
                 catch (Exception ex)
                 {
-                    log.WriteLog("Error al guardar pantallazo1: " + ex.Message, "ERROR");
+                    log.WriteLog("Error al guardar pantallazo2: " + ex.Message, "ERROR");
                     throw ex;
                 }
-                driver.Quit();
+                Thread.Sleep(_config.time_to_wait * 1000);
+                var saveButton = _driver.FindElement(By.XPath(_config.save_button));
+                saveButton.Click();
+                if (isLast) _driver.Quit();
                 Console.WriteLine("TERMINA ROBOT");
                 log.WriteLog("TERMINA ROBOT ............................", "INFO");
                 isExecuted = true;
@@ -88,7 +103,7 @@ namespace FormService.Worker
             }
         }
 
-        private static void PerformAction(IWebDriver driver, Element element, string text, WebDriverWait wait)
+        private static void PerformAction(Element element, string text, WebDriverWait wait)
         {
             var elementToFind = wait.Until(c => c.FindElement(By.XPath(element.XpathElement.Replace("_VARIABLE_", text))));
             //var elementToFind = driver.FindElement(By.XPath(element.XpathElement));
@@ -111,6 +126,61 @@ namespace FormService.Worker
                     Console.WriteLine($"Acción no reconocida: {element.Action}");
                     break;
             }
+            Thread.Sleep(500);
+        }
+
+        public bool Login() {
+            try
+            {
+                if (_driver == null)
+                    _driver = new ChromeDriver();
+                _driver.Navigate().GoToUrl(_config.account.url_form);
+                Thread.Sleep(120000);
+                /*WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+                DateTime now = DateTime.Now;
+                fileName = "screenshot_" + now.ToString("yyyy-MM-dd_HH-mm-ss");
+                //user
+                Thread.Sleep(_config.time_to_wait * 1000);
+                var submitButton = _driver.FindElement(By.XPath(_config.account.email_element));
+                var email_element = wait.Until(c => c.FindElement(By.XPath(_config.account.email_element)));
+                var email_btn_element = wait.Until(c => c.FindElement(By.XPath(_config.account.email_btn_element)));
+                email_element.SendKeys(_config.account.email);
+                Thread.Sleep(500);
+                email_btn_element.Click();
+                //password
+                Thread.Sleep(_config.time_to_wait * 1000);
+                var pass_element = wait.Until(c => c.FindElement(By.XPath(_config.account.password_element)));
+                var pass_btn_element = wait.Until(c => c.FindElement(By.XPath(_config.account.password_btn_element)));
+                pass_element.SendKeys(_config.account.password);
+                Thread.Sleep(500);
+                pass_btn_element.Click();
+                Thread.Sleep(_config.time_to_wait * 1000);
+                var session_chk_element = wait.Until(c => c.FindElement(By.XPath(_config.account.password_element)));
+                var session_btn_element = wait.Until(c => c.FindElement(By.XPath(_config.account.password_btn_element)));
+                session_chk_element.Click();
+                Thread.Sleep(500);
+                session_btn_element.Click();
+                Thread.Sleep(_config.time_to_wait * 1000);
+                log.WriteLog("SESIÓN INICIADA ............................", "INFO");
+                Screenshot screenshot = _driver.GetScreenshot();
+                try
+                {
+                    screenshot.SaveAsFile(PATH_SCREENSHOTS + fileName + "_LOGIN.jpg");
+                }
+                catch (Exception ex)
+                {
+                    log.WriteLog("Error al guardar pantallazo1: " + ex.Message, "ERROR");
+                    throw ex;
+                }
+                Thread.Sleep(_config.time_to_wait * 1000);*/
+            }
+            catch (Exception ex) {
+                log.WriteLog("Error al iniciar sesión: " + ex.Message, "ERROR");
+                return false;
+            }
+            Thread.Sleep(_config.time_to_wait * 1000);
+            return true;
+
         }
     }
 }
