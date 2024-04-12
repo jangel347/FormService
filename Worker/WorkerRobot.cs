@@ -135,44 +135,7 @@ namespace FormService.Worker
                 if (_driver == null)
                     _driver = new ChromeDriver();
                 _driver.Navigate().GoToUrl(_config.account.url_form);
-                Thread.Sleep(120000);
-                /*WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-                DateTime now = DateTime.Now;
-                fileName = "screenshot_" + now.ToString("yyyy-MM-dd_HH-mm-ss");
-                //user
-                Thread.Sleep(_config.time_to_wait * 1000);
-                var submitButton = _driver.FindElement(By.XPath(_config.account.email_element));
-                var email_element = wait.Until(c => c.FindElement(By.XPath(_config.account.email_element)));
-                var email_btn_element = wait.Until(c => c.FindElement(By.XPath(_config.account.email_btn_element)));
-                email_element.SendKeys(_config.account.email);
-                Thread.Sleep(500);
-                email_btn_element.Click();
-                //password
-                Thread.Sleep(_config.time_to_wait * 1000);
-                var pass_element = wait.Until(c => c.FindElement(By.XPath(_config.account.password_element)));
-                var pass_btn_element = wait.Until(c => c.FindElement(By.XPath(_config.account.password_btn_element)));
-                pass_element.SendKeys(_config.account.password);
-                Thread.Sleep(500);
-                pass_btn_element.Click();
-                Thread.Sleep(_config.time_to_wait * 1000);
-                var session_chk_element = wait.Until(c => c.FindElement(By.XPath(_config.account.password_element)));
-                var session_btn_element = wait.Until(c => c.FindElement(By.XPath(_config.account.password_btn_element)));
-                session_chk_element.Click();
-                Thread.Sleep(500);
-                session_btn_element.Click();
-                Thread.Sleep(_config.time_to_wait * 1000);
-                log.WriteLog("SESIÓN INICIADA ............................", "INFO");
-                Screenshot screenshot = _driver.GetScreenshot();
-                try
-                {
-                    screenshot.SaveAsFile(PATH_SCREENSHOTS + fileName + "_LOGIN.jpg");
-                }
-                catch (Exception ex)
-                {
-                    log.WriteLog("Error al guardar pantallazo1: " + ex.Message, "ERROR");
-                    throw ex;
-                }
-                Thread.Sleep(_config.time_to_wait * 1000);*/
+                Thread.Sleep(_config.account.time_to_wait);
             }
             catch (Exception ex) {
                 log.WriteLog("Error al iniciar sesión: " + ex.Message, "ERROR");
